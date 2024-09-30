@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('team_user', function (Blueprint $table) {
             $table->string('theme')->nullable()->default('default');
             $table->string('theme_color')->nullable();
         });
@@ -16,7 +16,7 @@ return new class extends Migration
 
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
+        Schema::table('team_user', function (Blueprint $table) {
             $table->dropColumn(['theme', 'theme_color']);
         });
     }

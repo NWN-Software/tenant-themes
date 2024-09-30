@@ -64,6 +64,12 @@ class Themes
             return $this->make(cache('theme') ?? config('themes.default.theme', 'default'));
         }
 
+        $user = Filament::getCurrentPanel()->auth()->user();
+        $theme = $user->pivot->theme;
+        $themeColor = $user->pivot->theme_color;
+
+        dd($user, ['theme' => $theme, 'theme_color' => $themeColor]);
+
         return $this->make(Filament::getCurrentPanel()->auth()->user()->theme ?? config('themes.default.theme', 'default'));
     }
 
