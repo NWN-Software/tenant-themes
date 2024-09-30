@@ -17,7 +17,7 @@ class Themes extends Page
 
     protected static ?string $title = 'Appearance';
 
-    public function getTitle(): string | Htmlable
+    public function getTitle(): string|Htmlable
     {
         return __('themes::themes.appearance');
     }
@@ -45,7 +45,10 @@ class Themes extends Page
             return cache('theme_color');
         }
 
-        return Filament::auth()->user()->theme_color;
+        $user = Filament::auth()->user();
+        $tenant = Filament::getTenant();
+
+        return $tenant->members()->withPivot('theme_color')->find($user->id)->pivot->theme_color;
     }
 
     public function getColors()
@@ -59,12 +62,13 @@ class Themes extends Page
             cache(['theme_color' => $color]);
         } else {
             $user = Filament::auth()->user();
-            $user->theme_color = $color;
-            $user->save();
+            $tenant = Filament::getTenant();
+
+            $tenant->members()->updateExistingPivot($user->id, ['theme_color' => $color]);
         }
 
         Notification::make()
-            ->title(__('themes::themes.primary_color_set') . ' ' . $color . '.')
+            ->title(__('themes::themes.primary_color_set').' '.$color.'.')
             ->success()
             ->send();
 
@@ -77,12 +81,13 @@ class Themes extends Page
             cache(['theme' => $theme]);
         } else {
             $user = Filament::auth()->user();
-            $user->theme = $theme;
-            $user->save();
+            $tenant = Filament::getTenant();
+
+            $tenant->members()->updateExistingPivot($user->id, ['theme' => $theme]);
         }
 
         Notification::make()
-            ->title(__('themes::themes.theme_set_to') . ' ' . $theme . '.')
+            ->title(__('themes::themes.theme_set_to').' '.$theme.'.')
             ->success()
             ->send();
 

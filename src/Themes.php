@@ -22,7 +22,7 @@ class Themes
         $this->collection = collect([
             DefaultTheme::getName() => DefaultTheme::class,
             Dracula::getName() => Dracula::class,
-            Nord::getName() => Nord::class,
+            // Nord::getName() => Nord::class,
             Sunset::getName() => Sunset::class,
         ]);
     }
@@ -64,13 +64,9 @@ class Themes
             return $this->make(cache('theme') ?? config('themes.default.theme', 'default'));
         }
 
-        $user = Filament::getCurrentPanel()->auth()->user();
-        $theme = $user->pivot->theme;
-        $themeColor = $user->pivot->theme_color;
+        [$theme, $_color] = $this->getUserTheme();
 
-        dd($user, ['theme' => $theme, 'theme_color' => $themeColor]);
-
-        return $this->make(Filament::getCurrentPanel()->auth()->user()->theme ?? config('themes.default.theme', 'default'));
+        return $this->make($theme);
     }
 
     public function getCurrentThemeColor(): array
@@ -82,11 +78,22 @@ class Themes
         if (config('themes.mode') === 'global') {
             $color = cache('theme_color') ?? config('themes.default.theme_color');
         } else {
-            $color = Filament::getCurrentPanel()->auth()->user()->theme_color ?? config('themes.default.theme_color');
+            [$_theme, $color] = $this->getUserTheme();
         }
 
         return Arr::has($this->getCurrentTheme()->getThemeColor(), $color)
             ? ['primary' => Arr::get($this->getCurrentTheme()->getThemeColor(), $color)]
             : ($color ? ['primary' => $color] : $this->getCurrentTheme()->getPrimaryColor());
+    }
+
+    protected function getUserTheme(): array
+    {
+        $user = Filament::getCurrentPanel()->auth()->user();
+        $userWithPivot = Filament::getTenant()->members()->withPivot(['theme', 'theme_color'])->firstWhere('user_id', $user->id);
+
+        return [
+            $userWithPivot->pivot->theme ?? config('themes.default.theme', 'default'),
+            $userWithPivot->pivot->theme_color ?? config('themes.default.theme_color'),
+        ];
     }
 }
