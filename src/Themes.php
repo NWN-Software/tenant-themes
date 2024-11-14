@@ -11,6 +11,7 @@ use Hasnayeen\Themes\Themes\Nord;
 use Hasnayeen\Themes\Themes\Sunset;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 
 class Themes
@@ -89,11 +90,19 @@ class Themes
     protected function getUserTheme(): array
     {
         $user = Filament::getCurrentPanel()->auth()->user();
-        $userWithPivot = Filament::getTenant()->members()->withPivot(['theme', 'theme_color'])->firstWhere('user_id', $user->id);
+        $tenant = Filament::getTenant();
+        $id = tenant()?->id;
 
-        return [
-            $userWithPivot->pivot->theme ?? config('themes.default.theme', 'default'),
-            $userWithPivot->pivot->theme_color ?? config('themes.default.theme_color'),
-        ];
+        $cacheKey = "user_theme_{$id}_{$tenant->id}_{$user->id}";
+
+        // Attempt to retrieve from cache
+        return Cache::remember($cacheKey, now()->addMinutes(60), function () use ($user, $tenant) {
+            $userWithPivot = $tenant->members()->withPivot(['theme', 'theme_color'])->firstWhere('user_id', $user->id);
+
+            return [
+                $userWithPivot->pivot->theme ?? config('themes.default.theme', 'default'),
+                $userWithPivot->pivot->theme_color ?? config('themes.default.theme_color'),
+            ];
+        });
     }
 }
