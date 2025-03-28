@@ -10,6 +10,7 @@ use Hasnayeen\Themes\ThemesPlugin;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 
 class Themes extends Page
 {
@@ -63,8 +64,8 @@ class Themes extends Page
         } else {
             $user = Filament::auth()->user();
             $tenant = Filament::getTenant();
-
             $tenant->members()->updateExistingPivot($user->id, ['theme_color' => $color]);
+            $this->setChangeToCache($user, $tenant);
         }
 
         Notification::make()
@@ -80,10 +81,10 @@ class Themes extends Page
         if (config('themes.mode') === 'global') {
             cache(['theme' => $theme]);
         } else {
-            $user = Filament::auth()->user();
+            $user = Filament::getCurrentPanel()->auth()->user();
             $tenant = Filament::getTenant();
-
             $tenant->members()->updateExistingPivot($user->id, ['theme' => $theme]);
+            $this->setChangeToCache($user, $tenant);
         }
 
         Notification::make()
@@ -102,5 +103,19 @@ class Themes extends Page
     public function getFooter(): ?View
     {
         return view('themes::filament.pages.themes-footer');
+    }
+
+    public function setChangeToCache($user, $tenant)
+    {
+        $id = tenant()?->id;
+        $cacheKey = "user_theme_{$id}_{$tenant->id}_{$user->id}";
+
+        Cache::remember($cacheKey, now()->addMinutes(60), function () use ($user, $tenant) {
+            $userWithPivot = $tenant->members()->withPivot(['theme', 'theme_color'])->firstWhere('user_id', $user->id);
+            return [
+                $userWithPivot->pivot->theme ?? config('themes.default.theme', 'default'),
+                $userWithPivot->pivot->theme_color ?? config('themes.default.theme_color'),
+            ];
+        });
     }
 }
