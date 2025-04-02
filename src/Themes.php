@@ -92,17 +92,15 @@ class Themes
         $user = Filament::getCurrentPanel()->auth()->user();
         $tenant = Filament::getTenant();
         $id = tenant()?->id;
-
         $cacheKey = "user_theme_{$id}_{$tenant->id}_{$user->id}";
 
-        // Attempt to retrieve from cache
-        return Cache::remember($cacheKey, now()->addMinutes(60), function () use ($user, $tenant) {
-            $userWithPivot = $tenant->members()->withPivot(['theme', 'theme_color'])->firstWhere('user_id', $user->id);
+        $cachedUserTheme = Cache::get($cacheKey);
 
-            return [
-                $userWithPivot->pivot->theme ?? config('themes.default.theme', 'default'),
-                $userWithPivot->pivot->theme_color ?? config('themes.default.theme_color'),
+        return isset($cachedUserTheme[0]) && isset($cachedUserTheme[1]) && is_string($cachedUserTheme[0]) && is_string($cachedUserTheme[1])
+            ? $cachedUserTheme
+            : [
+                $tenant->members()->withPivot(['theme', 'theme_color'])->firstWhere('user_id', $user->id)?->pivot->theme ?? config('themes.default.theme', 'default'),
+                $tenant->members()->withPivot(['theme', 'theme_color'])->firstWhere('user_id', $user->id)?->pivot->theme_color ?? config('themes.default.theme_color'),
             ];
-        });
     }
 }
