@@ -109,7 +109,9 @@ class Themes extends Page
     {
         $id = tenant()?->id;
         $cacheKey = "user_theme_{$id}_{$tenant->id}_{$user->id}";
-
+        
+        Cache::forget($cacheKey);
+        
         Cache::remember($cacheKey, now()->addMinutes(60), function () use ($user, $tenant) {
             $userWithPivot = $tenant->members()->withPivot(['theme', 'theme_color'])->firstWhere('user_id', $user->id);
             return [
