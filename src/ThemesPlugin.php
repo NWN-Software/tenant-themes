@@ -57,6 +57,11 @@ class ThemesPlugin implements Plugin
         return true;
     }
 
+    /**
+     * Registra temas adicionales o sobreescribe todos los existentes.
+     *
+     * @param  array<string, class-string<\Hasnayeen\Themes\Contracts\Theme>>  $theme
+     */
     public function registerTheme(array $theme, bool $override = false): self
     {
         app(Themes::class)->register($theme, $override);
