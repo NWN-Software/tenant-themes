@@ -19,7 +19,7 @@ class Themes extends Page
 
     protected static ?string $title = 'Appearance';
 
-    protected static string $view = 'themes::filament.pages.themes';
+    protected string $view = 'themes::filament.pages.themes';
 
     public function getTitle(): string|Htmlable
     {
