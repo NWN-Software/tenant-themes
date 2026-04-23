@@ -92,13 +92,12 @@ class ThemesServiceProvider extends PackageServiceProvider
         return app(Themes::class)
             ->getThemes()
             ->map(function (string $theme): Css {
-                // En v4+ preferimos la ruta pública si está disponible
-                if (FilamentVersionHelper::isV4OrAbove() && method_exists($theme, 'getPublicPath')) {
-                    return Css::make($theme::getName(), $theme::getPublicPath());
-                }
-
+                // Siempre usamos getPath() que retorna la ruta absoluta al CSS
+                // compilado dentro del paquete (vendor/hasnayeen/themes/resources/dist/).
+                // Filament::assets se encarga de copiarlo a public/ con el nombre correcto.
                 return Css::make($theme::getName(), $theme::getPath());
             })
+            ->values()
             ->toArray();
     }
 
