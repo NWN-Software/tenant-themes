@@ -19,6 +19,11 @@ class Sunset implements HasChangeableColor, Theme
         return __DIR__ . '/../../resources/dist/sunset.css';
     }
 
+    public static function getPublicPath(): string
+    {
+        return 'vendor/hasnayeen/themes/sunset.css';
+    }
+
     public function getThemeColor(): array
     {
         return Arr::except(Color::all(), ['gray', 'zinc', 'neutral', 'stone']);
