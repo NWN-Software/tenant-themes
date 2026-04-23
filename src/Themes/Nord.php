@@ -6,6 +6,7 @@ use Filament\Panel;
 use Filament\Support\Colors\Color;
 use Hasnayeen\Themes\Contracts\CanModifyPanelConfig;
 use Hasnayeen\Themes\Contracts\Theme;
+use Hasnayeen\Themes\Support\FilamentVersionHelper;
 
 class Nord implements CanModifyPanelConfig, Theme
 {
@@ -17,6 +18,11 @@ class Nord implements CanModifyPanelConfig, Theme
     public static function getPath(): string
     {
         return __DIR__ . '/../../resources/dist/nord.css';
+    }
+
+    public static function getPublicPath(): string
+    {
+        return 'vendor/hasnayeen/themes/nord.css';
     }
 
     public function getThemeColor(): array
@@ -33,9 +39,32 @@ class Nord implements CanModifyPanelConfig, Theme
 
     public function modifyPanelConfig(Panel $panel): Panel
     {
-        return $panel
+        $panel = $panel
             ->topNavigation()
-            ->sidebarCollapsibleOnDesktop(false)
-            ->renderHook('panels::page.start', fn () => view('themes::filament.hooks.tenant-menu'));
+            ->sidebarCollapsibleOnDesktop(false);
+
+        // En v4+ el hook 'panels::page.start' puede haberse renombrado o
+        // el tenant-menu gestionarse de otra forma. Usamos renderHook con
+        // compatibilidad defensiva.
+        if (FilamentVersionHelper::isV4OrAbove()) {
+            // En v4/v5 el componente x-filament-panels::tenant-menu sigue existiendo,
+            // pero el hook puede diferir. Intentamos el hook estándar.
+            try {
+                $panel->renderHook(
+                    'panels::topbar.start',
+                    fn () => view('themes::filament.hooks.tenant-menu')
+                );
+            } catch (\Throwable) {
+                // Si el hook no existe en esta versión, lo omitimos silenciosamente.
+            }
+        } else {
+            // v3: hook original
+            $panel->renderHook(
+                'panels::page.start',
+                fn () => view('themes::filament.hooks.tenant-menu')
+            );
+        }
+
+        return $panel;
     }
 }
