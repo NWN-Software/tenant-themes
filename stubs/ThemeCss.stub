@@ -1,3 +1,14 @@
+/**
+ * Filament v3 (Tailwind CSS v3):
+ * @import '../../../../../vendor/filament/filament/resources/css/theme.css';
+ * @config './tailwind.{{ theme }}.config.js';
+ *
+ * Filament v4+ (Tailwind CSS v4):
+ * @import '../../../../../vendor/filament/filament/dist/theme.css';
+ *
+ * Descomenta el bloque que corresponde a tu versión de Filament.
+ */
+
 @import '../../../../../vendor/filament/filament/resources/css/theme.css';
 
 @config './tailwind.{{ theme }}.config.js';
