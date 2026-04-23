@@ -13,9 +13,21 @@ class {{ class }} implements CanModifyPanelConfig, Theme
         return '{{ name }}';
     }
 
+    /**
+     * Ruta absoluta al CSS compilado del tema (usado internamente).
+     */
     public static function getPath(): string
     {
-        return 'resources/css/filament/{{ panel }}/themes/{{ name }}.css';
+        return resource_path('css/filament/{{ panel }}/themes/{{ name }}.css');
+    }
+
+    /**
+     * Ruta pública al CSS compilado del tema relativa a /public.
+     * Requerida por Filament v4+.
+     */
+    public static function getPublicPath(): string
+    {
+        return 'css/filament/{{ panel }}/themes/{{ name }}.css';
     }
 
     public function getThemeColor(): array
