@@ -17,6 +17,11 @@ class Dracula implements HasOnlyDarkMode, Theme
         return __DIR__ . '/../../resources/dist/dracula.css';
     }
 
+    public static function getPublicPath(): string
+    {
+        return 'vendor/hasnayeen/themes/dracula.css';
+    }
+
     public function getThemeColor(): array
     {
         return [
