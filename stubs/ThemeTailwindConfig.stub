@@ -1,3 +1,6 @@
+/**
+ * Tailwind CSS v3 (Filament v3):
+ */
 import preset from '../../../../../vendor/filament/filament/tailwind.config.preset'
 
 export default {
@@ -8,3 +11,20 @@ export default {
         './vendor/filament/**/*.blade.php',
     ],
 }
+
+/**
+ * Tailwind CSS v4 (Filament v4+):
+ * Si usas Filament v4 o superior, reemplaza el contenido de este archivo con:
+ *
+ * import { defineConfig } from 'tailwindcss'
+ * import preset from '../../../../../vendor/filament/filament/tailwind.config.preset'
+ *
+ * export default defineConfig({
+ *     presets: [preset],
+ *     content: [
+ *         './app/Filament/{{ classPathPrefix }}**\/*.php',
+ *         './resources/views/filament/{{ viewPathPrefix }}**\/*.blade.php',
+ *         './vendor/filament/**\/*.blade.php',
+ *     ],
+ * })
+ */
