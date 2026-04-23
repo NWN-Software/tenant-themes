@@ -8,6 +8,7 @@ use Filament\Support\Assets\Css;
 use Filament\Support\Facades\FilamentAsset;
 use Hasnayeen\Themes\Commands\ThemesMakeCommand;
 use Hasnayeen\Themes\Commands\UpgradeCommand;
+use Hasnayeen\Themes\Support\FilamentVersionHelper;
 use Illuminate\Foundation\Console\AboutCommand;
 use Spatie\LaravelPackageTools\Commands\InstallCommand;
 use Spatie\LaravelPackageTools\Package;
@@ -21,11 +22,6 @@ class ThemesServiceProvider extends PackageServiceProvider
 
     public function configurePackage(Package $package): void
     {
-        /*
-         * This class is a Package Service Provider
-         *
-         * More info: https://github.com/spatie/laravel-package-tools
-         */
         $package->name(static::$name)
             ->hasAssets()
             ->hasCommands($this->getCommands())
@@ -65,12 +61,16 @@ class ThemesServiceProvider extends PackageServiceProvider
 
     public function packageBooted(): void
     {
-        if (app()->runningInConsole()) {
-            FilamentAsset::register($this->getAssets(), $this->getAssetPackageName());
-        }
+        // Registrar los assets del paquete en todos los contextos
+        // (no solo en consola) para que el UpgradeCommand pueda copiarlos
+        // y para que estén disponibles como fallback.
+        // El middleware SetTheme registra dinámicamente solo el tema activo en runtime.
+        FilamentAsset::register($this->getAssets(), $this->getAssetPackageName());
+
         if (class_exists(AboutCommand::class) && class_exists(InstalledVersions::class)) {
             AboutCommand::add('Themes', [
                 'Version' => InstalledVersions::getPrettyVersion('hasnayeen/themes'),
+                'Filament' => 'v' . FilamentVersionHelper::getMajorVersion() . '.x',
                 'Themes' => app(Themes::class)
                     ->getThemes()
                     ->map(fn ($item, $key) => $key)
@@ -91,7 +91,14 @@ class ThemesServiceProvider extends PackageServiceProvider
     {
         return app(Themes::class)
             ->getThemes()
-            ->map(fn (string $theme): Css => Css::make($theme::getName(), $theme::getPath()))
+            ->map(function (string $theme): Css {
+                // En v4+ preferimos la ruta pública si está disponible
+                if (FilamentVersionHelper::isV4OrAbove() && method_exists($theme, 'getPublicPath')) {
+                    return Css::make($theme::getName(), $theme::getPublicPath());
+                }
+
+                return Css::make($theme::getName(), $theme::getPath());
+            })
             ->toArray();
     }
 
