@@ -15,23 +15,30 @@ use InvalidArgumentException;
 
 class Themes
 {
-    protected $collection;
+    /** @var Collection<string, class-string<Theme>> */
+    protected Collection $collection;
 
     public function __construct()
     {
         $this->collection = collect([
             DefaultTheme::getName() => DefaultTheme::class,
-            Dracula::getName() => Dracula::class,
-            Nord::getName() => Nord::class,
-            Sunset::getName() => Sunset::class,
+            Dracula::getName()      => Dracula::class,
+            Nord::getName()         => Nord::class,
+            Sunset::getName()       => Sunset::class,
         ]);
     }
 
+    /**
+     * @return Collection<string, class-string<Theme>>
+     */
     public function getThemes(): Collection
     {
         return $this->collection;
     }
 
+    /**
+     * @param  array<string, class-string<Theme>>  $themes
+     */
     public function register(array $themes, bool $override = false): self
     {
         if (empty($themes)) {
@@ -43,6 +50,7 @@ class Themes
 
             return $this;
         }
+
         $this->collection = $this->collection->merge($themes);
 
         return $this;
@@ -50,12 +58,17 @@ class Themes
 
     public function make(string $theme): Theme
     {
-        $name = $this->collection->first(fn ($item) => $item::getName() === $theme);
-        if ($name) {
-            return new $name;
+        /** @var class-string<Theme>|null $themeClass */
+        $themeClass = $this->collection->first(fn ($item) => $item::getName() === $theme);
+
+        if ($themeClass) {
+            return new $themeClass;
         }
 
-        return app($this->collection->first());
+        /** @var class-string<Theme> $first */
+        $first = $this->collection->first();
+
+        return app($first);
     }
 
     public function getCurrentTheme(): Theme
@@ -64,23 +77,28 @@ class Themes
             return $this->make(cache('theme') ?? config('themes.default.theme', 'default'));
         }
 
-        return $this->make(Filament::getCurrentPanel()->auth()->user()->theme ?? config('themes.default.theme', 'default'));
+        $user = Filament::getCurrentPanel()->auth()->user();
+
+        return $this->make($user->theme ?? config('themes.default.theme', 'default'));
     }
 
     public function getCurrentThemeColor(): array
     {
-        if (! $this->getCurrentTheme() instanceof HasChangeableColor) {
-            return $this->getCurrentTheme()->getThemeColor();
+        $theme = $this->getCurrentTheme();
+
+        if (! $theme instanceof HasChangeableColor) {
+            return $theme->getThemeColor();
         }
 
         if (config('themes.mode') === 'global') {
             $color = cache('theme_color') ?? config('themes.default.theme_color');
         } else {
-            $color = Filament::getCurrentPanel()->auth()->user()->theme_color ?? config('themes.default.theme_color');
+            $user = Filament::getCurrentPanel()->auth()->user();
+            $color = $user->theme_color ?? config('themes.default.theme_color');
         }
 
-        return Arr::has($this->getCurrentTheme()->getThemeColor(), $color)
-            ? ['primary' => Arr::get($this->getCurrentTheme()->getThemeColor(), $color)]
-            : ($color ? ['primary' => $color] : $this->getCurrentTheme()->getPrimaryColor());
+        return Arr::has($theme->getThemeColor(), $color)
+            ? ['primary' => Arr::get($theme->getThemeColor(), $color)]
+            : ($color ? ['primary' => $color] : $theme->getPrimaryColor());
     }
 }
