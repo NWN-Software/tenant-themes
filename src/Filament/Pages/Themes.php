@@ -2,6 +2,7 @@
 
 namespace Hasnayeen\Themes\Filament\Pages;
 
+use BackedEnum;
 use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
@@ -13,16 +14,17 @@ use Illuminate\Support\Arr;
 
 class Themes extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    // En Filament v4/v5 el tipo cambió de ?string a string|BackedEnum|null
+    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-swatch';
 
     protected static ?string $title = 'Appearance';
 
-    public function getTitle(): string | Htmlable
+    protected static string $view = 'themes::filament.pages.themes';
+
+    public function getTitle(): string|Htmlable
     {
         return __('themes::themes.appearance');
     }
-
-    protected static string $view = 'themes::filament.pages.themes';
 
     public function mount(): void
     {
@@ -53,7 +55,7 @@ class Themes extends Page
         return Arr::except(Color::all(), ['gray', 'zinc', 'neutral', 'stone']);
     }
 
-    public function setColor(string $color)
+    public function setColor(string $color): void
     {
         if (config('themes.mode') === 'global') {
             cache(['theme_color' => $color]);
@@ -68,10 +70,10 @@ class Themes extends Page
             ->success()
             ->send();
 
-        return $this->redirect(self::getUrl());
+        $this->redirect(self::getUrl());
     }
 
-    public function setTheme(string $theme)
+    public function setTheme(string $theme): void
     {
         if (config('themes.mode') === 'global') {
             cache(['theme' => $theme]);
@@ -86,7 +88,7 @@ class Themes extends Page
             ->success()
             ->send();
 
-        return $this->redirect(self::getUrl());
+        $this->redirect(self::getUrl());
     }
 
     public static function shouldRegisterNavigation(): bool
