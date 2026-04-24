@@ -9,48 +9,49 @@ use Filament\Pages\Page;
 use Filament\Support\Colors\Color;
 use Hasnayeen\Themes\ThemesPlugin;
 use Illuminate\Contracts\Support\Htmlable;
-use Illuminate\Contracts\View\View;
 use Illuminate\Support\Arr;
 
 class Themes extends Page
 {
-    // En Filament v4/v5 el tipo cambió de ?string a string|BackedEnum|null
+    // v4/v5: tipo actualizado de ?string a string|BackedEnum|null
     protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-swatch';
 
     protected static ?string $title = 'Appearance';
 
+    // v4/v5: $view es instancia (no estático) en la clase base Page
     protected string $view = 'themes::filament.pages.themes';
-
-    public function getTitle(): string|Htmlable
-    {
-        return __('themes::themes.appearance');
-    }
 
     public function mount(): void
     {
         abort_unless(ThemesPlugin::canView(), 403);
     }
 
-    public function getThemes()
+    public function getTitle(): string|Htmlable
+    {
+        return __('themes::themes.appearance');
+    }
+
+    public function getThemes(): \Illuminate\Support\Collection
     {
         return app(\Hasnayeen\Themes\Themes::class)->getThemes();
     }
 
-    public function getCurrentTheme()
+    public function getCurrentTheme(): \Hasnayeen\Themes\Contracts\Theme
     {
         return app(\Hasnayeen\Themes\Themes::class)->getCurrentTheme();
     }
 
-    public function getColor()
+    public function getColor(): ?string
     {
         if (config('themes.mode') === 'global') {
             return cache('theme_color');
         }
 
-        return Filament::auth()->user()->theme_color;
+        $user = Filament::auth()->user();
+        return $user?->theme_color;
     }
 
-    public function getColors()
+    public function getColors(): array
     {
         return Arr::except(Color::all(), ['gray', 'zinc', 'neutral', 'stone']);
     }
@@ -70,7 +71,7 @@ class Themes extends Page
             ->success()
             ->send();
 
-        $this->redirect(self::getUrl());
+        $this->redirect(static::getUrl());
     }
 
     public function setTheme(string $theme): void
@@ -88,16 +89,11 @@ class Themes extends Page
             ->success()
             ->send();
 
-        $this->redirect(self::getUrl());
+        $this->redirect(static::getUrl());
     }
 
     public static function shouldRegisterNavigation(): bool
     {
         return false;
-    }
-
-    public function getFooter(): ?View
-    {
-        return view('themes::filament.pages.themes-footer');
     }
 }
