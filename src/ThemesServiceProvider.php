@@ -95,7 +95,8 @@ class ThemesServiceProvider extends PackageServiceProvider
                 // Siempre usamos getPath() que retorna la ruta absoluta al CSS
                 // compilado dentro del paquete (vendor/hasnayeen/themes/resources/dist/).
                 // Filament::assets se encarga de copiarlo a public/ con el nombre correcto.
-                return Css::make($theme::getName(), $theme::getPath());
+                return Css::make($theme::getName(), $theme::getPath())
+                ->loadedOnRequest();
             })
             ->values()
             ->toArray();
