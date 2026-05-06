@@ -10,6 +10,7 @@ use Filament\Support\Colors\Color;
 use Hasnayeen\Themes\ThemesPlugin;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Cache;
 
 class Themes extends Page
 {
@@ -48,7 +49,9 @@ class Themes extends Page
         }
 
         $user = Filament::auth()->user();
-        return $user?->theme_color;
+        $tenant = Filament::getTenant();
+
+        return $tenant->members()->withPivot('theme_color')->find($user->id)->pivot->theme_color;
     }
 
     public function getColors(): array
@@ -62,8 +65,9 @@ class Themes extends Page
             cache(['theme_color' => $color]);
         } else {
             $user = Filament::auth()->user();
-            $user->theme_color = $color;
-            $user->save();
+            $tenant = Filament::getTenant();
+            $tenant->members()->updateExistingPivot($user->id, ['theme_color' => $color]);
+            $this->setChangeToCache($user, $tenant);
         }
 
         Notification::make()
@@ -79,9 +83,10 @@ class Themes extends Page
         if (config('themes.mode') === 'global') {
             cache(['theme' => $theme]);
         } else {
-            $user = Filament::auth()->user();
-            $user->theme = $theme;
-            $user->save();
+            $user = Filament::getCurrentPanel()->auth()->user();
+            $tenant = Filament::getTenant();
+            $tenant->members()->updateExistingPivot($user->id, ['theme' => $theme]);
+            $this->setChangeToCache($user, $tenant);
         }
 
         Notification::make()
@@ -90,6 +95,22 @@ class Themes extends Page
             ->send();
 
         $this->redirect(static::getUrl());
+    }
+
+    public function setChangeToCache($user, $tenant)
+    {
+        $id = tenant()?->id;
+        $cacheKey = "user_theme_{$id}_{$tenant->id}_{$user->id}";
+
+        Cache::forget($cacheKey);
+
+        Cache::remember($cacheKey, now()->addMinutes(60), function () use ($user, $tenant) {
+            $userWithPivot = $tenant->members()->withPivot(['theme', 'theme_color'])->firstWhere('user_id', $user->id);
+            return [
+                $userWithPivot->pivot->theme ?? config('themes.default.theme', 'default'),
+                $userWithPivot->pivot->theme_color ?? config('themes.default.theme_color'),
+            ];
+        });
     }
 
     public static function shouldRegisterNavigation(): bool

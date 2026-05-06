@@ -11,6 +11,7 @@ use Hasnayeen\Themes\Themes\Nord;
 use Hasnayeen\Themes\Themes\Sunset;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 
 class Themes
@@ -23,7 +24,7 @@ class Themes
         $this->collection = collect([
             DefaultTheme::getName() => DefaultTheme::class,
             Dracula::getName()      => Dracula::class,
-            Nord::getName()         => Nord::class,
+            // Nord::getName()         => Nord::class,
             Sunset::getName()       => Sunset::class,
         ]);
     }
@@ -77,9 +78,9 @@ class Themes
             return $this->make(cache('theme') ?? config('themes.default.theme', 'default'));
         }
 
-        $user = Filament::getCurrentPanel()->auth()->user();
+        [$theme, $_color] = $this->getUserTheme();
 
-        return $this->make($user->theme ?? config('themes.default.theme', 'default'));
+        return $this->make($theme);
     }
 
     public function getCurrentThemeColor(): array
@@ -93,12 +94,34 @@ class Themes
         if (config('themes.mode') === 'global') {
             $color = cache('theme_color') ?? config('themes.default.theme_color');
         } else {
-            $user = Filament::getCurrentPanel()->auth()->user();
-            $color = $user->theme_color ?? config('themes.default.theme_color');
+            [$_theme, $color] = $this->getUserTheme();
         }
 
         return Arr::has($theme->getThemeColor(), $color)
             ? ['primary' => Arr::get($theme->getThemeColor(), $color)]
             : ($color ? ['primary' => $color] : $theme->getPrimaryColor());
+    }
+
+
+    protected function getUserTheme(): array
+    {
+        $user = Filament::getCurrentPanel()->auth()->user();
+        $tenant = Filament::getTenant();
+        $id = tenant()?->id;
+
+        $cacheKey = "user_theme_{$id}_{$tenant->id}_{$user->id}";
+
+        $cachedUserTheme = Cache::get($cacheKey);
+
+        return isset($cachedUserTheme[0]) && isset($cachedUserTheme[1]) && is_string($cachedUserTheme[0]) && is_string($cachedUserTheme[1])
+        ? $cachedUserTheme
+        : Cache::remember($cacheKey, now()->addMinutes(60), function () use ($user, $tenant) {
+            $userWithPivot = $tenant->members()->withPivot(['theme', 'theme_color'])->firstWhere('user_id', $user->id);
+
+            return [
+                $userWithPivot->pivot->theme ?? config('themes.default.theme', 'default'),
+                $userWithPivot->pivot->theme_color ?? config('themes.default.theme_color'),
+            ];
+        });
     }
 }
