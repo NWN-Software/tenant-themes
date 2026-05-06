@@ -7,14 +7,16 @@ use Filament\Facades\Filament;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Filament\Support\Colors\Color;
+use Hasnayeen\Themes\Contracts\Theme;
 use Hasnayeen\Themes\ThemesPlugin;
 use Illuminate\Contracts\Support\Htmlable;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Collection;
 
 class Themes extends Page
 {
     // v4/v5: tipo actualizado de ?string a string|BackedEnum|null
-    protected static string|BackedEnum|null $navigationIcon = 'heroicon-o-swatch';
+    protected static string | BackedEnum | null $navigationIcon = 'heroicon-o-swatch';
 
     protected static ?string $title = 'Appearance';
 
@@ -26,17 +28,17 @@ class Themes extends Page
         abort_unless(ThemesPlugin::canView(), 403);
     }
 
-    public function getTitle(): string|Htmlable
+    public function getTitle(): string | Htmlable
     {
         return __('themes::themes.appearance');
     }
 
-    public function getThemes(): \Illuminate\Support\Collection
+    public function getThemes(): Collection
     {
         return app(\Hasnayeen\Themes\Themes::class)->getThemes();
     }
 
-    public function getCurrentTheme(): \Hasnayeen\Themes\Contracts\Theme
+    public function getCurrentTheme(): Theme
     {
         return app(\Hasnayeen\Themes\Themes::class)->getCurrentTheme();
     }
@@ -48,6 +50,7 @@ class Themes extends Page
         }
 
         $user = Filament::auth()->user();
+
         return $user?->theme_color;
     }
 

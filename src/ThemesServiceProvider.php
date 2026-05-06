@@ -96,7 +96,7 @@ class ThemesServiceProvider extends PackageServiceProvider
                 // compilado dentro del paquete (vendor/hasnayeen/themes/resources/dist/).
                 // Filament::assets se encarga de copiarlo a public/ con el nombre correcto.
                 return Css::make($theme::getName(), $theme::getPath())
-                ->loadedOnRequest();
+                    ->loadedOnRequest();
             })
             ->values()
             ->toArray();

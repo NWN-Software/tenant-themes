@@ -22,9 +22,9 @@ class Themes
     {
         $this->collection = collect([
             DefaultTheme::getName() => DefaultTheme::class,
-            Dracula::getName()      => Dracula::class,
-            Nord::getName()         => Nord::class,
-            Sunset::getName()       => Sunset::class,
+            Dracula::getName() => Dracula::class,
+            Nord::getName() => Nord::class,
+            Sunset::getName() => Sunset::class,
         ]);
     }
 

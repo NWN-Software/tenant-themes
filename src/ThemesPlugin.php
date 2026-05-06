@@ -5,6 +5,7 @@ namespace Hasnayeen\Themes;
 use Closure;
 use Filament\Contracts\Plugin;
 use Filament\Panel;
+use Hasnayeen\Themes\Contracts\Theme;
 use Hasnayeen\Themes\Filament\Pages\Themes as ThemesPage;
 
 class ThemesPlugin implements Plugin
@@ -60,7 +61,7 @@ class ThemesPlugin implements Plugin
     /**
      * Registra temas adicionales o sobreescribe todos los existentes.
      *
-     * @param  array<string, class-string<\Hasnayeen\Themes\Contracts\Theme>>  $theme
+     * @param  array<string, class-string<Theme>>  $theme
      */
     public function registerTheme(array $theme, bool $override = false): self
     {

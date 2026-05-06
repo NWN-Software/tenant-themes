@@ -88,11 +88,11 @@ class ThemesMakeCommand extends Command
         }
 
         $this->copyStubToApp('Theme', $fullPath, [
-            'class'     => $themeClass,
-            'name'      => $name,
-            'panel'     => $panelId,
+            'class' => $themeClass,
+            'name' => $name,
+            'panel' => $panelId,
             'namespace' => str($namespace) . ($themeNamespace !== '' ? "\\{$themeNamespace}" : ''),
-            'method'    => file_exists(base_path('vite.config.js')) ? 'viteTheme' : 'theme',
+            'method' => file_exists(base_path('vite.config.js')) ? 'viteTheme' : 'theme',
         ]);
 
         $this->components->info("<fg=green>Successfully created {$themeNamespace}/{$theme}.php!");
@@ -196,7 +196,7 @@ class ThemesMakeCommand extends Command
 
         $this->copyStubToApp('ThemeTailwindConfig', $tailwindConfigFilePath, [
             'classPathPrefix' => $classPathPrefix,
-            'viewPathPrefix'  => $viewPathPrefix,
+            'viewPathPrefix' => $viewPathPrefix,
         ]);
 
         $this->components->info("<fg=green>Successfully created resources/css/filament/{$panelId}/themes/{$theme}.css and resources/css/filament/{$panelId}/themes/tailwind.{$theme}.config.js!</>");
