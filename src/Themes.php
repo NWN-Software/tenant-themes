@@ -23,9 +23,9 @@ class Themes
     {
         $this->collection = collect([
             DefaultTheme::getName() => DefaultTheme::class,
-            Dracula::getName()      => Dracula::class,
+            Dracula::getName() => Dracula::class,
             // Nord::getName()         => Nord::class,
-            Sunset::getName()       => Sunset::class,
+            Sunset::getName() => Sunset::class,
         ]);
     }
 
@@ -101,7 +101,6 @@ class Themes
             ? ['primary' => Arr::get($theme->getThemeColor(), $color)]
             : ($color ? ['primary' => $color] : $theme->getPrimaryColor());
     }
-
 
     protected function getUserTheme(): array
     {
