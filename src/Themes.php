@@ -74,6 +74,9 @@ class Themes
 
     public function getCurrentTheme(): Theme
     {
+        return $this->make('default');
+
+        // Disable theming for now, only support custom color
         if (config('themes.mode') === 'global') {
             return $this->make(cache('theme') ?? config('themes.default.theme', 'default'));
         }
